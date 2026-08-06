@@ -1,3 +1,4 @@
+using ExpenseTracker.Api.Data;
 using ExpenseTracker.Api.Dtos;
 using ExpenseTracker.Api.Models;
 using Microsoft.AspNetCore.Authorization;

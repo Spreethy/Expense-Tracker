@@ -26,7 +26,7 @@ public class AppDbContext : DbContext
             .HasOne(c => c.User)
             .WithMany(u => u.Customers)
             .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Expense>()
             .HasOne(e => e.User)
