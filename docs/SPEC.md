@@ -30,6 +30,7 @@ seed data). The Angular frontend (`ExpenseTracker.Web/`) does not exist yet and 
 
 - Recurring invoices (deferred to v2).
 - Email delivery of invoices (deferred to v2).
+- Online payment gateway (Stripe/PayPal pay-by-link) — v1 is **manual payment tracking only**; customers pay externally (bank transfer/cash) and the user records the payment in the app. Deferred to v2.
 - Admin/role management screens (deferred to v2).
 - Mobile apps, offline mode, audit logs.
 
@@ -105,6 +106,7 @@ Current entities (already implemented): `User`, `Customer`, `Expense`, `Invoice`
 
 - **InvoicePayment** (new)
   - Id, InvoiceId, Amount, PaymentDate, Method (enum: Cash/Bank/Card/Other), Reference, CreatedAt
+  - Manual tracking only: the user records payments received externally; there is **no** online gateway in v1.
   - Status derivation: `Paid` when `Sum(payments) >= Total`; `Sent` + due date passed → `Overdue`; otherwise explicit status.
   - **Note:** existing `InvoiceStatus.Paid` stays, but UI/server computes effective paid amount.
 
@@ -288,6 +290,7 @@ Details of each phase may be expanded into `docs/PHASES.md` as they start.
 ## 14. Open Questions / Assumptions
 
 - **Currency symbol map:** we assume a small static map (USD $, EUR €, GBP £, INR ₹, …); free-form codes render as the code alone.
+- **Payment flow (v1):** customer pays externally (bank transfer/cash/check). User records the payment on the invoice (amount, date, method, reference). Invoice shows `Paid` once payments ≥ total. Online pay-by-link is a v2 candidate.
 - **PDF design:** default clean template (logo placeholder, company=user display name, customer, line items, tax, totals); no user-uploaded logo in v1.
 - **Deletion policy:** expenses/customers/invoices hard-delete (user-confirmed in UI) for v1; soft-delete is a v2 candidate.
 - **Rates source:** manual entry only in v1.
