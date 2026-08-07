@@ -27,4 +27,16 @@ export class CurrencyService {
   get defaultCurrency(): string {
     return this.cached?.defaultCurrency ?? '';
   }
+
+  updateDefault(defaultCurrency: string): Observable<UserCurrency> {
+    return this.http
+      .put<UserCurrency>(`${environment.apiUrl}/api/currencies/default`, { defaultCurrency })
+      .pipe(tap((res) => (this.cached = res)));
+  }
+
+  updateRates(rates: Record<string, number>): Observable<UserCurrency> {
+    return this.http
+      .put<UserCurrency>(`${environment.apiUrl}/api/currencies/rates`, { rates })
+      .pipe(tap((res) => (this.cached = res)));
+  }
 }

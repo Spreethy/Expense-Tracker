@@ -1,0 +1,86 @@
+<div class="reports">
+  <div class="page-header">
+    <h1>Reports</h1>
+    <span class="currency">All amounts in {{ currency }}</span>
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  <div class="chart-row">
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Expenses by category</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (categoryData().length === 0) {
+          <app-empty-state icon="pie_chart" message="No expense data yet." />
+        } @else {
+          <ngx-charts-pie-chart
+            [results]="categoryData()"
+            [scheme]="colorScheme"
+            [labels]="true"
+            [legend]="true" />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Invoices by status</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (statusData().length === 0) {
+          <app-empty-state icon="pie_chart" message="No invoice data yet." />
+        } @else {
+          <ngx-charts-pie-chart
+            [results]="statusData()"
+            [scheme]="colorScheme"
+            [labels]="true"
+            [legend]="true" />
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="chart-row">
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Expenses by month</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (expenseMonthData().length === 0) {
+          <app-empty-state icon="show_chart" message="No expense data for the last 12 months." />
+        } @else {
+          <ngx-charts-bar-vertical
+            [results]="expenseMonthData()"
+            [scheme]="colorScheme"
+            [xAxis]="true"
+            [yAxis]="true"
+            [showXAxisLabel]="false"
+            [yAxisTickFormatting]="currencyTick" />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="chart-card">
+      <mat-card-header>
+        <mat-card-title>Invoices by month</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (invoiceMonthData().length === 0) {
+          <app-empty-state icon="show_chart" message="No invoice data for the last 12 months." />
+        } @else {
+          <ngx-charts-bar-vertical
+            [results]="invoiceMonthData()"
+            [scheme]="colorScheme"
+            [xAxis]="true"
+            [yAxis]="true"
+            [showXAxisLabel]="false"
+            [yAxisTickFormatting]="currencyTick" />
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

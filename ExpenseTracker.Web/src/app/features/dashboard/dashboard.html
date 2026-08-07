@@ -1,10 +1,74 @@
 <div class="dashboard">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Welcome, {{ auth.currentUser()?.displayName }}!</mat-card-title>
-      <mat-card-subtitle>
-        Your workspace is ready. Expense, customer, and invoice features arrive in the next phases.
-      </mat-card-subtitle>
-    </mat-card-header>
-  </mat-card>
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (summary(); as s) {
+    <div class="page-header">
+      <h1>Welcome, {{ s.currency }} workspace</h1>
+    </div>
+
+    <div class="card-grid">
+      @for (card of cards; track card.label) {
+        <mat-card class="stat-card">
+          <mat-icon [class.accent]="card.accent" [class.warn]="card.warn">{{ card.icon }}</mat-icon>
+          <div>
+            <div class="value">{{ card.value | money: currency }}</div>
+            <div class="label">{{ card.label }}</div>
+          </div>
+        </mat-card>
+      }
+    </div>
+
+    <div class="chart-row">
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Expenses by month</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (monthData().length === 0) {
+            <app-empty-state icon="show_chart" message="No expense data for the last 6 months." />
+          } @else {
+            <ngx-charts-bar-vertical
+              [results]="monthData()"
+              [scheme]="colorScheme"
+              [xAxis]="true"
+              [yAxis]="true"
+              [showXAxisLabel]="false"
+              [showYAxisLabel]="false"
+              [yAxisTickFormatting]="compactNumber" />
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="chart-card">
+        <mat-card-header>
+          <mat-card-title>Invoices by status</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (statusData().length === 0) {
+            <app-empty-state icon="pie_chart" message="No invoice data yet." />
+          } @else {
+            <ngx-charts-pie-chart
+              [results]="statusData()"
+              [scheme]="colorScheme"
+              [labels]="true"
+              [legend]="true" />
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="card-grid">
+      @for (card of counts; track card.label) {
+        <mat-card class="stat-card clickable" [routerLink]="card.link">
+          <mat-icon [class.warn]="card.warn">{{ card.icon }}</mat-icon>
+          <div>
+            <div class="value">{{ card.value }}</div>
+            <div class="label">{{ card.label }}</div>
+          </div>
+        </mat-card>
+      }
+    </div>
+  }
 </div>

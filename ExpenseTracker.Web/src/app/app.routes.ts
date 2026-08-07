@@ -44,6 +44,16 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/invoices/invoice-editor/invoice-editor').then((m) => m.InvoiceEditor),
   },
+  {
+    path: 'reports',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/reports/reports').then((m) => m.Reports),
+  },
+  {
+    path: 'settings',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: '**', redirectTo: 'dashboard' },
 ];

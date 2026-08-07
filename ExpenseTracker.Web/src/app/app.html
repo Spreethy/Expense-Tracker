@@ -7,12 +7,17 @@
     <a mat-button routerLink="/invoices" routerLinkActive="active-link">Invoices</a>
     <a mat-button routerLink="/customers" routerLinkActive="active-link">Customers</a>
     <a mat-button routerLink="/categories" routerLinkActive="active-link">Categories</a>
+    <a mat-button routerLink="/reports" routerLinkActive="active-link">Reports</a>
     <span class="spacer"></span>
     <button mat-button [matMenuTriggerFor]="userMenu">
       {{ auth.currentUser()?.displayName }}
       <mat-icon>arrow_drop_down</mat-icon>
     </button>
     <mat-menu #userMenu="matMenu">
+      <a mat-menu-item routerLink="/settings">
+        <mat-icon>settings</mat-icon>
+        <span>Settings</span>
+      </a>
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Sign out</span>
