@@ -77,6 +77,7 @@ export class Invoices {
       .pipe(takeUntilDestroyed())
       .subscribe({
         next: (invoices) => this.invoices.set(invoices),
+        error: () => this.snackbar.open('Could not load invoices.', 'Close', { duration: 4000 }),
         complete: () => this.loading.set(false),
       });
   }

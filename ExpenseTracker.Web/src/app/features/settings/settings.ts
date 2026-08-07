@@ -54,7 +54,13 @@ export class Settings {
     this.currencyService
       .getCurrencies()
       .pipe(takeUntilDestroyed())
-      .subscribe((data) => this.apply(data));
+      .subscribe({
+        next: (data) => this.apply(data),
+        error: () => {
+          this.loading.set(false);
+          this.snackbar.open('Could not load settings.', 'Close', { duration: 4000 });
+        },
+      });
   }
 
   private apply(data: UserCurrency): void {

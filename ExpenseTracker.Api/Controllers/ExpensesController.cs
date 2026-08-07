@@ -96,7 +96,11 @@ public class ExpensesController : ControllerBase
         _db.Expenses.Add(expense);
         await _db.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetById), new { id = expense.Id }, ToDto(expense));
+        var created = await _db.Expenses
+            .Include(e => e.Category)
+            .SingleAsync(e => e.Id == expense.Id);
+
+        return CreatedAtAction(nameof(GetById), new { id = expense.Id }, ToDto(created));
     }
 
     [HttpPut("{id:int}")]

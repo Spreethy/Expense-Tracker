@@ -72,7 +72,10 @@ export class Reports {
     this.currencyService
       .getCurrencies()
       .pipe(takeUntilDestroyed())
-      .subscribe(() => this.loading.set(false));
+      .subscribe({
+        next: () => this.loading.set(false),
+        error: () => this.loading.set(false),
+      });
   }
 
   get currency(): string {

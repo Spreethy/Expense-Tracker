@@ -47,8 +47,13 @@ export class Categories {
       .pipe(takeUntilDestroyed())
       .subscribe({
         next: (categories) => this.categories.set(categories),
+        error: () => this.onLoadError(),
         complete: () => this.loading.set(false),
       });
+  }
+
+  private onLoadError(): void {
+    this.snackbar.open('Could not load categories.', 'Close', { duration: 4000 });
   }
 
   openDialog(category?: Category): void {
@@ -62,11 +67,18 @@ export class Categories {
       .pipe(takeUntilDestroyed())
       .subscribe((payload) => {
         if (!payload) return;
-        if (category) {
-          this.categoryService.update(category.id, payload).subscribe(() => this.load());
-        } else {
-          this.categoryService.create(payload).subscribe(() => this.load());
-        }
+        const request = category
+          ? this.categoryService.update(category.id, payload)
+          : this.categoryService.create(payload);
+        request.subscribe({
+          next: () => {
+            this.snackbar.open(category ? 'Category updated' : 'Category created', 'Close', { duration: 3000 });
+            this.load();
+          },
+          error: (err) => {
+            this.snackbar.open(err.error?.message ?? 'Could not save the category.', 'Close', { duration: 4000 });
+          },
+        });
       });
   }
 

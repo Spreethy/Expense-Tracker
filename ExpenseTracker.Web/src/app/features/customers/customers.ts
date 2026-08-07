@@ -47,6 +47,7 @@ export class Customers {
       .pipe(takeUntilDestroyed())
       .subscribe({
         next: (customers) => this.customers.set(customers),
+        error: () => this.snackbar.open('Could not load customers.', 'Close', { duration: 4000 }),
         complete: () => this.loading.set(false),
       });
   }
@@ -62,11 +63,18 @@ export class Customers {
       .pipe(takeUntilDestroyed())
       .subscribe((payload) => {
         if (!payload) return;
-        if (customer) {
-          this.customerService.update(customer.id, payload).subscribe(() => this.load());
-        } else {
-          this.customerService.create(payload).subscribe(() => this.load());
-        }
+        const request = customer
+          ? this.customerService.update(customer.id, payload)
+          : this.customerService.create(payload);
+        request.subscribe({
+          next: () => {
+            this.snackbar.open(customer ? 'Customer updated' : 'Customer created', 'Close', { duration: 3000 });
+            this.load();
+          },
+          error: (err) => {
+            this.snackbar.open(err.error?.message ?? 'Could not save the customer.', 'Close', { duration: 4000 });
+          },
+        });
       });
   }
 

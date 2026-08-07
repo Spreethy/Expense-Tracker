@@ -88,11 +88,14 @@ export class Expenses {
         combineLatestWith(this.currencyService.getCurrencies())
       )
       .pipe(takeUntilDestroyed())
-      .subscribe(([expenses, currency]) => {
-        this.expenses.set(expenses);
-        this.defaultCurrency.set(currency.defaultCurrency);
-        this.total.set(expenses.reduce((sum, e) => sum + e.amount, 0));
-        this.loading.set(false);
+      .subscribe({
+        next: ([expenses, currency]) => {
+          this.expenses.set(expenses);
+          this.defaultCurrency.set(currency.defaultCurrency);
+          this.total.set(expenses.reduce((sum, e) => sum + e.amount, 0));
+        },
+        error: () => this.snackbar.open('Could not load expenses.', 'Close', { duration: 4000 }),
+        complete: () => this.loading.set(false),
       });
   }
 
@@ -112,11 +115,18 @@ export class Expenses {
       .pipe(takeUntilDestroyed())
       .subscribe((payload) => {
         if (!payload) return;
-        if (expense) {
-          this.expenseService.update(expense.id, payload).subscribe(() => this.load());
-        } else {
-          this.expenseService.create(payload).subscribe(() => this.load());
-        }
+        const request = expense
+          ? this.expenseService.update(expense.id, payload)
+          : this.expenseService.create(payload);
+        request.subscribe({
+          next: () => {
+            this.snackbar.open(expense ? 'Expense updated' : 'Expense created', 'Close', { duration: 3000 });
+            this.load();
+          },
+          error: (err) => {
+            this.snackbar.open(err.error?.message ?? 'Could not save the expense.', 'Close', { duration: 4000 });
+          },
+        });
       });
   }
 

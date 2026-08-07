@@ -52,9 +52,10 @@ export class Dashboard {
     this.reportService
       .getSummary()
       .pipe(takeUntilDestroyed())
-      .subscribe((summary) => {
-        this.summary.set(summary);
-        this.loading.set(false);
+      .subscribe({
+        next: (summary) => this.summary.set(summary),
+        error: () => this.loading.set(false),
+        complete: () => this.loading.set(false),
       });
 
     this.reportService
