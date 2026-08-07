@@ -1,0 +1,22 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  &__icon {
+    font-size: 56px;
+    width: 56px;
+    height: 56px;
+    opacity: 0.6;
+  }
+
+  &__message {
+    font: var(--mat-sys-body-medium);
+    margin: 0;
+  }
+}

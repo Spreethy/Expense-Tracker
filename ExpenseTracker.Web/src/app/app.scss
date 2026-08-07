@@ -1,0 +1,21 @@
+.toolbar {
+  gap: 8px;
+
+  .brand {
+    font-weight: 600;
+    font-size: 18px;
+    margin-right: 16px;
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .active-link {
+    background: rgba(255, 255, 255, 0.16);
+  }
+}
+
+main {
+  display: block;
+}

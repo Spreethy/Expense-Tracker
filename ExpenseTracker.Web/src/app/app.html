@@ -1,0 +1,24 @@
+<mat-toolbar color="primary" class="toolbar">
+  <span class="brand">Expense Tracker</span>
+
+  @if (auth.isAuthenticated()) {
+    <a mat-button routerLink="/dashboard" routerLinkActive="active-link">Dashboard</a>
+    <span class="spacer"></span>
+    <button mat-button [matMenuTriggerFor]="userMenu">
+      {{ auth.currentUser()?.displayName }}
+      <mat-icon>arrow_drop_down</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Sign out</span>
+      </button>
+    </mat-menu>
+  } @else {
+    <span class="spacer"></span>
+    <a mat-button routerLink="/login">Sign in</a>
+    <a mat-button routerLink="/register">Register</a>
+  }
+</mat-toolbar>
+
+<router-outlet />
