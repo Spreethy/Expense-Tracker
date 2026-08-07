@@ -12,4 +12,4 @@ public record LoginRequest(
     [Required] string Username,
     [Required] string Password);
 
-public record AuthResponse(int Id, string Username, string Email, string DisplayName, string Token);
+public record AuthResponse(int Id, string Username, string Email, string DisplayName, string CurrencyCode, string Token);

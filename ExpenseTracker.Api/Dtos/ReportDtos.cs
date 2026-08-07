@@ -9,9 +9,10 @@ public record DashboardSummary(
     int ExpenseCount,
     int InvoiceCount,
     int OverdueInvoiceCount,
-    int CustomerCount);
+    int CustomerCount,
+    string Currency);
 
-public record CategoryTotal(string Category, decimal Amount, int Count);
+public record CategoryTotal(int? CategoryId, string Category, decimal Amount, int Count);
 
 public record MonthTotal(string Month, decimal Amount, int Count);
 

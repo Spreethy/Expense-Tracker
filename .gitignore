@@ -28,6 +28,9 @@ appsettings.Production.json
 .vscode/
 *.swp
 
+# Local-only docs (kept out of the public repo)
+docs/
+
 # OS
 Thumbs.db
 Desktop.ini

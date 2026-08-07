@@ -23,7 +23,21 @@ public static class AppDbSeeder
         db.Users.Add(demo);
         await db.SaveChangesAsync();
 
-        var categories = new[] { "Travel", "Meals", "Office Supplies", "Software", "Utilities", "Other" };
+        var categories = new List<Category>();
+        foreach (var (name, color) in CategoryDefaults.Presets)
+        {
+            var category = new Category { UserId = demo.Id, Name = name, Color = color };
+            db.Categories.Add(category);
+            categories.Add(category);
+        }
+
+        db.CurrencyRates.AddRange(
+            new CurrencyRate { UserId = demo.Id, FromCurrency = "EUR", RateToDefault = 0.92m },
+            new CurrencyRate { UserId = demo.Id, FromCurrency = "GBP", RateToDefault = 0.79m },
+            new CurrencyRate { UserId = demo.Id, FromCurrency = "INR", RateToDefault = 83.50m });
+
+        await db.SaveChangesAsync();
+
         var rng = new Random(42);
         var descriptions = new[]
         {
@@ -39,9 +53,10 @@ public static class AppDbSeeder
             db.Expenses.Add(new Expense
             {
                 UserId = demo.Id,
+                CategoryId = categories[rng.Next(categories.Count)].Id,
                 Description = descriptions[rng.Next(descriptions.Length)],
-                Category = categories[rng.Next(categories.Length)],
                 Amount = Math.Round((decimal)(20 + rng.NextDouble() * 800), 2),
+                CurrencyCode = rng.Next(10) == 0 ? "EUR" : "USD",
                 ExpenseDate = date,
                 Notes = rng.Next(4) == 0 ? "Seeded sample expense" : null
             });
@@ -78,6 +93,7 @@ public static class AppDbSeeder
             var customer = customerEntities[rng.Next(customerEntities.Count)];
             var issue = now.AddMonths(-rng.Next(0, 12)).AddDays(-rng.Next(0, 28));
             var taxRate = 10m;
+            var status = statuses[rng.Next(statuses.Length)];
 
             var invoice = new Invoice
             {
@@ -86,7 +102,8 @@ public static class AppDbSeeder
                 InvoiceNumber = $"INV-{issue.Year}-{i + 1:D4}",
                 IssueDate = issue,
                 DueDate = issue.AddDays(30),
-                Status = statuses[rng.Next(statuses.Length)],
+                Status = status,
+                CurrencyCode = rng.Next(10) == 0 ? "EUR" : "USD",
                 TaxRate = taxRate,
                 Notes = "Seeded sample invoice",
                 Items = new List<InvoiceItem>()
@@ -102,8 +119,33 @@ public static class AppDbSeeder
                 });
             }
 
+            if (status == InvoiceStatus.Paid)
+            {
+                invoice.Payments.Add(new InvoicePayment
+                {
+                    Amount = invoice.Total,
+                    PaymentDate = issue.AddDays(10),
+                    Method = PaymentMethod.Bank,
+                    Reference = "Demo bank transfer"
+                });
+            }
+
             db.Invoices.Add(invoice);
         }
+
+        await db.SaveChangesAsync();
+
+        var sequences = db.Invoices
+            .Where(i => i.UserId == demo.Id)
+            .AsEnumerable()
+            .GroupBy(i => i.IssueDate.Year)
+            .Select(g => new InvoiceSequence
+            {
+                UserId = demo.Id,
+                Year = g.Key,
+                LastNumber = g.Max(i => int.Parse(i.InvoiceNumber.Split('-').Last()))
+            });
+        db.InvoiceSequences.AddRange(sequences);
 
         await db.SaveChangesAsync();
     }

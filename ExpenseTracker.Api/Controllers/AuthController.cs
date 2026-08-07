@@ -46,8 +46,10 @@ public class AuthController : ControllerBase
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(Register), new AuthResponse(
-            user.Id, user.Username, user.Email, user.DisplayName, _jwt.GenerateToken(user)));
+        _db.Categories.AddRange(CategoryDefaults.ForUser(user.Id));
+        await _db.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(Register), ToAuthResponse(user));
     }
 
     [HttpPost("login")]
@@ -59,8 +61,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid username or password." });
         }
 
-        return Ok(new AuthResponse(
-            user.Id, user.Username, user.Email, user.DisplayName, _jwt.GenerateToken(user)));
+        return Ok(ToAuthResponse(user));
     }
 
     [Authorize]
@@ -74,8 +75,9 @@ public class AuthController : ControllerBase
             return NotFound();
         }
 
-        return Ok(new AuthResponse(
-            user.Id, user.Username, user.Email, user.DisplayName,
-            _jwt.GenerateToken(user)));
+        return Ok(ToAuthResponse(user));
     }
+
+    private AuthResponse ToAuthResponse(User user) =>
+        new(user.Id, user.Username, user.Email, user.DisplayName, user.CurrencyCode, _jwt.GenerateToken(user));
 }
