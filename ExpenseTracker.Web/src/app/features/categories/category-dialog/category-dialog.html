@@ -1,0 +1,32 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Edit category' : 'New category' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="form">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" placeholder="e.g. Software, Travel" />
+    </mat-form-field>
+
+    <div class="color-field">
+      <label class="color-label">Color</label>
+      <div class="swatches">
+        @for (preset of presets; track preset) {
+          <button
+            type="button"
+            class="swatch"
+            [class.selected]="form.get('color')?.value === preset"
+            [style.background]="preset"
+            (click)="form.get('color')?.setValue(preset)"
+            [attr.aria-label]="'Color ' + preset"></button>
+        }
+      </div>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">
+    {{ isEdit ? 'Save' : 'Create' }}
+  </button>
+</mat-dialog-actions>

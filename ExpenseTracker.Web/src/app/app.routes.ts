@@ -9,6 +9,21 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
   },
+  {
+    path: 'expenses',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/expenses/expenses').then((m) => m.Expenses),
+  },
+  {
+    path: 'customers',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/customers/customers').then((m) => m.Customers),
+  },
+  {
+    path: 'categories',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/categories/categories').then((m) => m.Categories),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: '**', redirectTo: 'dashboard' },
 ];

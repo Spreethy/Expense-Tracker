@@ -1,0 +1,99 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Expenses</h1>
+    <button mat-flat-button color="primary" (click)="openDialog()">
+      <mat-icon>add</mat-icon>
+      New expense
+    </button>
+  </div>
+
+  <mat-card class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Month</mat-label>
+      <input
+        matInput
+        [matDatepicker]="monthPicker"
+        [formControl]="monthControl"
+        placeholder="Any month" />
+      <mat-datepicker-toggle matIconSuffix [for]="monthPicker"></mat-datepicker-toggle>
+      <mat-datepicker #monthPicker startView="multi-year"></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <mat-select [formControl]="categoryControl">
+        <mat-option [value]="null">All categories</mat-option>
+        @for (category of categories(); track category.id) {
+          <mat-option [value]="category.id">{{ category.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-button (click)="clearFilters()" [disabled]="!monthControl.value && !categoryControl.value">
+      Clear
+    </button>
+  </mat-card>
+
+  <mat-card class="card">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (!loading() && expenses().length === 0) {
+      <app-empty-state
+        icon="receipt_long"
+        message="No expenses found. Adjust the filters or add a new expense." />
+    }
+
+    @if (expenses().length > 0) {
+      <table mat-table [dataSource]="expenses()">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let row">{{ formatDate(row.expenseDate) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.description }}
+            @if (row.notes) {
+              <span class="notes" [title]="row.notes">· {{ row.notes }}</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef>Category</th>
+          <td mat-cell *matCellDef="let row">{{ row.category }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef>Amount</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="amount">{{ row.amount | money: row.currencyCode }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+          <td mat-cell *matCellDef="let row" class="actions-col">
+            <button mat-icon-button aria-label="Edit" (click)="openDialog(row)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button aria-label="Delete" (click)="remove(row)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+
+      <div class="footer">
+        <span>{{ expenses().length }} expense(s)</span>
+        <span class="total">Total: {{ total() | money: defaultCurrency() }}</span>
+      </div>
+    }
+  </mat-card>
+</div>

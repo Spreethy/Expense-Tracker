@@ -3,6 +3,9 @@
 
   @if (auth.isAuthenticated()) {
     <a mat-button routerLink="/dashboard" routerLinkActive="active-link">Dashboard</a>
+    <a mat-button routerLink="/expenses" routerLinkActive="active-link">Expenses</a>
+    <a mat-button routerLink="/customers" routerLinkActive="active-link">Customers</a>
+    <a mat-button routerLink="/categories" routerLinkActive="active-link">Categories</a>
     <span class="spacer"></span>
     <button mat-button [matMenuTriggerFor]="userMenu">
       {{ auth.currentUser()?.displayName }}

@@ -1,0 +1,57 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Categories</h1>
+    <button mat-flat-button color="primary" (click)="openDialog()">
+      <mat-icon>add</mat-icon>
+      New category
+    </button>
+  </div>
+
+  <mat-card class="card">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (!loading() && categories().length === 0) {
+      <app-empty-state
+        icon="category"
+        message="No categories yet. Create your first category to start organizing expenses." />
+    }
+
+    @if (categories().length > 0) {
+      <table mat-table [dataSource]="categories()">
+        <ng-container matColumnDef="color">
+          <th mat-header-cell *matHeaderCellDef>Color</th>
+          <td mat-cell *matCellDef="let row">
+            <span class="color-swatch" [style.background]="row.color || '#9e9e9e'"></span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="expenses">
+          <th mat-header-cell *matHeaderCellDef>Expenses</th>
+          <td mat-cell *matCellDef="let row">{{ row.expenseCount }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+          <td mat-cell *matCellDef="let row" class="actions-col">
+            <button mat-icon-button aria-label="Edit" (click)="openDialog(row)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button aria-label="Delete" (click)="remove(row)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns"></tr>
+      </table>
+    }
+  </mat-card>
+</div>
