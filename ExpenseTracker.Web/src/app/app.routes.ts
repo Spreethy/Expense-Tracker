@@ -24,6 +24,26 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/categories/categories').then((m) => m.Categories),
   },
+  {
+    path: 'invoices',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/invoices/invoices').then((m) => m.Invoices),
+  },
+  {
+    path: 'invoices/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/invoices/invoice-editor/invoice-editor').then((m) => m.InvoiceEditor),
+  },
+  {
+    path: 'invoices/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/invoices/invoice-detail/invoice-detail').then((m) => m.InvoiceDetail),
+  },
+  {
+    path: 'invoices/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/invoices/invoice-editor/invoice-editor').then((m) => m.InvoiceEditor),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: '**', redirectTo: 'dashboard' },
 ];

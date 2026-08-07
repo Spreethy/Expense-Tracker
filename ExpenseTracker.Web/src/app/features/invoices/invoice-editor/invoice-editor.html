@@ -1,0 +1,130 @@
+<div class="page">
+  <div class="page-header">
+    <h1>{{ editId() ? 'Edit invoice' : 'New invoice' }}</h1>
+    <button mat-button (click)="cancel()">
+      <mat-icon>arrow_back</mat-icon>
+      Back
+    </button>
+  </div>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (!loading()) {
+    <form [formGroup]="form" class="editor">
+      <mat-card class="section">
+        <h2>Details</h2>
+
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Customer</mat-label>
+            <mat-select formControlName="customerId">
+              <mat-option [value]="null">No customer</mat-option>
+              @for (customer of customers(); track customer.id) {
+                <mat-option [value]="customer.id">{{ customer.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Currency</mat-label>
+            <mat-select formControlName="currencyCode" required>
+              @for (currency of currencies | async; track currency.code) {
+                <mat-option [value]="currency.code">
+                  {{ currency.code }} — {{ currency.name }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Issue date</mat-label>
+            <input matInput [matDatepicker]="issuePicker" formControlName="issueDate" required />
+            <mat-datepicker-toggle matIconSuffix [for]="issuePicker"></mat-datepicker-toggle>
+            <mat-datepicker #issuePicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Due date</mat-label>
+            <input matInput [matDatepicker]="duePicker" formControlName="dueDate" required />
+            <mat-datepicker-toggle matIconSuffix [for]="duePicker"></mat-datepicker-toggle>
+            <mat-datepicker #duePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Tax rate (%)</mat-label>
+            <input matInput formControlName="taxRate" type="number" min="0" max="100" step="0.01" required />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Status</mat-label>
+            <mat-select formControlName="status" required>
+              <mat-option value="Draft">Draft</mat-option>
+              <mat-option value="Sent">Sent</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Notes</mat-label>
+          <textarea matInput formControlName="notes" rows="2" maxlength="500"></textarea>
+        </mat-form-field>
+      </mat-card>
+
+      <mat-card class="section">
+        <div class="section-head">
+          <h2>Line items</h2>
+          <button mat-stroked-button type="button" (click)="addItem()">
+            <mat-icon>add</mat-icon>
+            Add item
+          </button>
+        </div>
+
+        <div class="items" formArrayName="items">
+          @for (item of items.controls; track $index) {
+            <div class="item-row" [formGroupName]="$index">
+              <mat-form-field appearance="outline" class="desc">
+                <mat-label>Description</mat-label>
+                <input matInput formControlName="description" placeholder="e.g. Consulting, 40h" required />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="qty">
+                <mat-label>Qty</mat-label>
+                <input matInput formControlName="quantity" type="number" min="0.01" step="0.01" required />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="price">
+                <mat-label>Unit price</mat-label>
+                <input matInput formControlName="unitPrice" type="number" min="0" step="0.01" required />
+              </mat-form-field>
+
+              <div class="line-total">{{ itemTotal($index) | money: form.controls.currencyCode.value }}</div>
+
+              <button mat-icon-button type="button" aria-label="Remove item" (click)="removeItem($index)">
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="totals">
+          <div class="row"><span>Subtotal</span><span>{{ subtotal | money: form.controls.currencyCode.value }}</span></div>
+          <div class="row"><span>Tax ({{ form.controls.taxRate.value }}%)</span><span>{{ tax | money: form.controls.currencyCode.value }}</span></div>
+          <div class="row total"><span>Total</span><span>{{ total | money: form.controls.currencyCode.value }}</span></div>
+        </div>
+      </mat-card>
+
+      <div class="actions">
+        <button mat-button (click)="cancel()">Cancel</button>
+        <button mat-flat-button color="primary" [disabled]="saving()" (click)="save()">
+          {{ saving() ? 'Saving…' : (editId() ? 'Save changes' : 'Create invoice') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

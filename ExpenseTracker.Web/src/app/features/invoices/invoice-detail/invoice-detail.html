@@ -1,0 +1,164 @@
+<div class="page">
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (!loading() && invoice(); as inv) {
+    <div class="page-header">
+      <div class="title">
+        <button mat-icon-button (click)="router.navigate(['/invoices'])" aria-label="Back">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>{{ inv.invoiceNumber }}</h1>
+        <app-status-chip [status]="inv.status" />
+      </div>
+
+      <div class="actions">
+        <button mat-flat-button color="primary" (click)="downloadPdf()">
+          <mat-icon>download</mat-icon>
+          PDF
+        </button>
+
+        @if (isEditable()) {
+          <button mat-stroked-button (click)="edit()">
+            <mat-icon>edit</mat-icon>
+            Edit
+          </button>
+          <button mat-flat-button color="primary" (click)="send()">Mark sent</button>
+          <button mat-stroked-button color="warn" (click)="cancel()">Cancel invoice</button>
+        } @else if (inv.status === 'Sent') {
+          @if (inv.balance > 0) {
+            <button mat-flat-button color="primary" (click)="addPayment()">
+              <mat-icon>payments</mat-icon>
+              Record payment
+            </button>
+          }
+          <button mat-stroked-button [disabled]="inv.balance > 0" (click)="markPaid()">Mark paid</button>
+          <button mat-stroked-button color="warn" (click)="cancel()">Cancel invoice</button>
+        } @else if (inv.status === 'Overdue') {
+          <button mat-flat-button color="primary" (click)="addPayment()">
+            <mat-icon>payments</mat-icon>
+            Record payment
+          </button>
+        }
+
+        <button mat-icon-button color="warn" (click)="delete()" aria-label="Delete invoice">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <mat-card>
+        <div class="label">Customer</div>
+        <div class="value">{{ inv.customerName || '—' }}</div>
+      </mat-card>
+      <mat-card>
+        <div class="label">Issued</div>
+        <div class="value">{{ formatDate(inv.issueDate) }}</div>
+      </mat-card>
+      <mat-card>
+        <div class="label">Due</div>
+        <div class="value">{{ formatDate(inv.dueDate) }}</div>
+      </mat-card>
+      <mat-card>
+        <div class="label">Total</div>
+        <div class="value strong">{{ inv.total | money: inv.currencyCode }}</div>
+      </mat-card>
+      <mat-card>
+        <div class="label">Paid</div>
+        <div class="value strong paid">{{ inv.paidAmount | money: inv.currencyCode }}</div>
+      </mat-card>
+      <mat-card>
+        <div class="label">Balance</div>
+        <div class="value strong" [class.zero]="inv.balance === 0">{{ inv.balance | money: inv.currencyCode }}</div>
+      </mat-card>
+    </div>
+
+    <mat-card class="section">
+      <h2>Line items</h2>
+      <table mat-table [dataSource]="inv.items">
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <td mat-cell *matCellDef="let row">{{ row.description }}</td>
+        </ng-container>
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef class="num">Qty</th>
+          <td mat-cell *matCellDef="let row" class="num">{{ row.quantity }}</td>
+        </ng-container>
+        <ng-container matColumnDef="unitPrice">
+          <th mat-header-cell *matHeaderCellDef class="num">Unit price</th>
+          <td mat-cell *matCellDef="let row" class="num">{{ row.unitPrice | money: inv.currencyCode }}</td>
+        </ng-container>
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef class="num">Amount</th>
+          <td mat-cell *matCellDef="let row" class="num strong">{{ row.amount | money: inv.currencyCode }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="itemsColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: itemsColumns"></tr>
+      </table>
+
+      <div class="totals">
+        <div class="row"><span>Subtotal</span><span>{{ inv.subtotal | money: inv.currencyCode }}</span></div>
+        <div class="row"><span>Tax ({{ inv.taxRate }}%)</span><span>{{ inv.tax | money: inv.currencyCode }}</span></div>
+        <div class="row total"><span>Total</span><span>{{ inv.total | money: inv.currencyCode }}</span></div>
+      </div>
+
+      @if (inv.notes) {
+        <div class="notes">
+          <div class="label">Notes</div>
+          {{ inv.notes }}
+        </div>
+      }
+    </mat-card>
+
+    <mat-card class="section">
+      <div class="section-head">
+        <h2>Payments</h2>
+        @if (inv.status === 'Sent' || inv.status === 'Overdue') {
+          <button mat-stroked-button (click)="addPayment()">
+            <mat-icon>add</mat-icon>
+            Record payment
+          </button>
+        }
+      </div>
+
+      @if (inv.payments.length === 0) {
+        <app-empty-state icon="payments" message="No payments recorded yet." />
+      } @else {
+        <table mat-table [dataSource]="inv.payments">
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef="let row">{{ formatDate(row.paymentDate) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="method">
+            <th mat-header-cell *matHeaderCellDef>Method</th>
+            <td mat-cell *matCellDef="let row">{{ row.method }}</td>
+          </ng-container>
+          <ng-container matColumnDef="reference">
+            <th mat-header-cell *matHeaderCellDef>Reference</th>
+            <td mat-cell *matCellDef="let row">{{ row.reference || '—' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef class="num">Amount</th>
+            <td mat-cell *matCellDef="let row" class="num strong">{{ row.amount | money: inv.currencyCode }}</td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+            <td mat-cell *matCellDef="let row" class="actions-col">
+              @if (inv.status !== 'Cancelled') {
+                <button mat-icon-button aria-label="Remove payment" (click)="removePayment(row.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="paymentsColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: paymentsColumns"></tr>
+        </table>
+      }
+    </mat-card>
+  }
+</div>

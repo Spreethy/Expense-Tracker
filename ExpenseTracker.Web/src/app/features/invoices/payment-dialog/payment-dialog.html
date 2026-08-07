@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>Record payment</h2>
+
+<mat-dialog-content>
+  <p class="balance">Balance: <strong>{{ balance | money: currencyCode }}</strong></p>
+
+  <form [formGroup]="form" class="form">
+    <mat-form-field appearance="outline">
+      <mat-label>Amount</mat-label>
+      <input matInput formControlName="amount" type="number" min="0.01" [max]="balance" step="0.01" required />
+      @if (form.controls.amount.errors?.['max']) {
+        <mat-error>Cannot exceed the remaining balance.</mat-error>
+      }    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Payment date</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="paymentDate" required />
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Method</mat-label>
+      <mat-select formControlName="method">
+        @for (method of methods; track method) {
+          <mat-option [value]="method">{{ method }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Reference</mat-label>
+      <input matInput formControlName="reference" placeholder="e.g. transfer ref / check no." />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Record</button>
+</mat-dialog-actions>

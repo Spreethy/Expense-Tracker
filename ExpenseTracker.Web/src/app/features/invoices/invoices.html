@@ -1,0 +1,107 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Invoices</h1>
+    <button mat-flat-button color="primary" (click)="create()">
+      <mat-icon>add</mat-icon>
+      New invoice
+    </button>
+  </div>
+
+  <mat-card class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select [formControl]="statusControl">
+        <mat-option [value]="null">All statuses</mat-option>
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">{{ status }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Customer</mat-label>
+      <mat-select [formControl]="customerControl">
+        <mat-option [value]="null">All customers</mat-option>
+        @for (customer of customers(); track customer.id) {
+          <mat-option [value]="customer.id">{{ customer.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-button (click)="clearFilters()" [disabled]="!statusControl.value && !customerControl.value">
+      Clear
+    </button>
+  </mat-card>
+
+  <mat-card class="card">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (!loading() && invoices().length === 0) {
+      <app-empty-state
+        icon="description"
+        message="No invoices found. Adjust the filters or create a new invoice." />
+    }
+
+    @if (invoices().length > 0) {
+      <table mat-table [dataSource]="invoices()">
+        <ng-container matColumnDef="number">
+          <th mat-header-cell *matHeaderCellDef>Invoice</th>
+          <td mat-cell *matCellDef="let row" class="number">{{ row.invoiceNumber }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="customer">
+          <th mat-header-cell *matHeaderCellDef>Customer</th>
+          <td mat-cell *matCellDef="let row">{{ row.customerName || '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="issueDate">
+          <th mat-header-cell *matHeaderCellDef>Issued</th>
+          <td mat-cell *matCellDef="let row">{{ formatDate(row.issueDate) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="dueDate">
+          <th mat-header-cell *matHeaderCellDef>Due</th>
+          <td mat-cell *matCellDef="let row">{{ formatDate(row.dueDate) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let row">
+            <app-status-chip [status]="row.status" />
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef class="num">Total</th>
+          <td mat-cell *matCellDef="let row" class="num amount">
+            {{ row.total | money: row.currencyCode }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="balance">
+          <th mat-header-cell *matHeaderCellDef class="num">Balance</th>
+          <td mat-cell *matCellDef="let row" class="num">
+            <span [class.zero]="row.balance === 0">{{ row.balance | money: row.currencyCode }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="actions-col">Actions</th>
+          <td mat-cell *matCellDef="let row" class="actions-col">
+            <button mat-icon-button aria-label="Open" (click)="open(row)">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+            <button mat-icon-button aria-label="Delete" (click)="remove(row)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns" (click)="open(row)"></tr>
+      </table>
+    }
+  </mat-card>
+</div>

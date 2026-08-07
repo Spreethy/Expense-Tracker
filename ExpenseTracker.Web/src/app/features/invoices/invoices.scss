@@ -1,0 +1,59 @@
+.page {
+  padding: 24px;
+  max-width: 1180px;
+  margin: 0 auto;
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 500;
+    }
+  }
+
+  .filters {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 16px;
+    margin-bottom: 16px;
+
+    mat-form-field {
+      max-width: 260px;
+    }
+  }
+
+  .card {
+    overflow: hidden;
+
+    .number {
+      font-weight: 500;
+    }
+
+    .amount {
+      font-weight: 500;
+    }
+
+    .num {
+      text-align: right;
+    }
+
+    .zero {
+      color: var(--mat-sys-on-surface-variant);
+    }
+
+    tr.mat-mdc-row {
+      cursor: pointer;
+    }
+  }
+
+  .actions-col {
+    width: 96px;
+    text-align: right;
+  }
+}

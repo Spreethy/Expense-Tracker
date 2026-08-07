@@ -1,0 +1,37 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.chip-draft {
+  background: #eceff1;
+  color: #455a64;
+}
+
+.chip-sent {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.chip-paid {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.chip-overdue {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.chip-cancelled {
+  background: #f5f5f5;
+  color: #757575;
+  text-decoration: line-through;
+}
