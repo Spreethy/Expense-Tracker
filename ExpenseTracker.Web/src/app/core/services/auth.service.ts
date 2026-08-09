@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { firstValueFrom, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, RegisterRequest } from '../models/auth';
 
@@ -15,10 +15,17 @@ export class AuthService {
   readonly currentUser = signal<AuthResponse | null>(null);
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
 
-  constructor() {
-    if (this.token) {
-      this.fetchMe().subscribe({ error: () => this.logout() });
-    }
+  /** Restore the session on app boot. Must run AFTER construction (APP_INITIALIZER),
+   *  otherwise fetchMe() would trigger the auth interceptor's inject(AuthService)
+   *  while AuthService is still mid-construction -> circular DI error. */
+  initialize(): Promise<void> {
+    if (!this.token) return Promise.resolve();
+    return firstValueFrom(this.fetchMe())
+      .then(() => undefined)
+      .catch(() => {
+        localStorage.removeItem(TOKEN_KEY);
+        this.currentUser.set(null);
+      });
   }
 
   get token(): string | null {
