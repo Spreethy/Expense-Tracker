@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -17,6 +17,7 @@ import { EmptyState } from '../../shared/empty-state/empty-state';
 export class Reports {
   private readonly reportService = inject(ReportService);
   private readonly currencyService = inject(CurrencyService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
   readonly categoryData = signal<{ name: string; value: number }[]>([]);
@@ -35,7 +36,7 @@ export class Reports {
 
     this.reportService
       .getExpensesByCategory()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         this.categoryData.set(
           data.map((d: CategoryTotal) => ({ name: d.category, value: d.amount }))
@@ -44,7 +45,7 @@ export class Reports {
 
     this.reportService
       .getExpensesByMonth(12)
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         this.expenseMonthData.set(
           data.map((d: MonthTotal) => ({ name: this.monthLabel(d.month), value: d.amount }))
@@ -53,7 +54,7 @@ export class Reports {
 
     this.reportService
       .getInvoicesByMonth(12)
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         this.invoiceMonthData.set(
           data.map((d: MonthTotal) => ({ name: this.monthLabel(d.month), value: d.amount }))
@@ -62,7 +63,7 @@ export class Reports {
 
     this.reportService
       .getInvoicesByStatus()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         this.statusData.set(
           data.map((d: StatusTotal) => ({ name: d.status, value: d.amount }))
@@ -71,7 +72,7 @@ export class Reports {
 
     this.currencyService
       .getCurrencies()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.loading.set(false),
         error: () => this.loading.set(false),

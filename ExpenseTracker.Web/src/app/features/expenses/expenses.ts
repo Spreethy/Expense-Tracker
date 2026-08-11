@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -49,6 +49,7 @@ export class Expenses {
   private readonly dialog = inject(MatDialog);
   private readonly confirm = inject(ConfirmService);
   private readonly snackbar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly columns = ['date', 'description', 'category', 'amount', 'actions'];
 
@@ -64,11 +65,11 @@ export class Expenses {
   constructor() {
     this.categoryService
       .getAll()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((categories) => this.categories.set(categories));
 
-    this.categoryControl.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.load());
-    this.monthControl.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.load());
+    this.categoryControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load());
+    this.monthControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load());
 
     this.load();
   }
@@ -87,7 +88,7 @@ export class Expenses {
       .pipe(
         combineLatestWith(this.currencyService.getCurrencies())
       )
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ([expenses, currency]) => {
           this.expenses.set(expenses);
@@ -112,7 +113,7 @@ export class Expenses {
 
     ref
       .afterClosed()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((payload) => {
         if (!payload) return;
         const request = expense
@@ -137,7 +138,7 @@ export class Expenses {
         message: `Delete "${expense.description}" (${expense.amount} ${expense.currencyCode})? This cannot be undone.`,
         confirmLabel: 'Delete',
       })
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed) => {
         if (!confirmed) return;
         this.expenseService.delete(expense.id).subscribe({

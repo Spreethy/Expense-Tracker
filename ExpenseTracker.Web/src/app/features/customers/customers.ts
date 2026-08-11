@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -31,6 +31,7 @@ export class Customers {
   private readonly dialog = inject(MatDialog);
   private readonly confirm = inject(ConfirmService);
   private readonly snackbar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly columns = ['name', 'email', 'phone', 'actions'];
   readonly customers = signal<Customer[]>([]);
@@ -44,7 +45,7 @@ export class Customers {
     this.loading.set(true);
     this.customerService
       .getAll()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (customers) => this.customers.set(customers),
         error: () => this.snackbar.open('Could not load customers.', 'Close', { duration: 4000 }),
@@ -60,7 +61,7 @@ export class Customers {
 
     ref
       .afterClosed()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((payload) => {
         if (!payload) return;
         const request = customer
@@ -85,7 +86,7 @@ export class Customers {
         message: `Delete "${customer.name}"? This cannot be undone.`,
         confirmLabel: 'Delete',
       })
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed) => {
         if (!confirmed) return;
         this.customerService.delete(customer.id).subscribe({

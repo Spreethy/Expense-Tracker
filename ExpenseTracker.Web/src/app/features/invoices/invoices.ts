@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -45,6 +45,7 @@ export class Invoices {
   private readonly router = inject(Router);
   private readonly snackbar = inject(MatSnackBar);
   private readonly confirm = inject(ConfirmService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly columns = ['number', 'customer', 'issueDate', 'dueDate', 'status', 'total', 'balance', 'actions'];
 
@@ -58,11 +59,11 @@ export class Invoices {
   constructor() {
     this.customerService
       .getAll()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((customers) => this.customers.set(customers));
 
-    this.statusControl.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.load());
-    this.customerControl.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.load());
+    this.statusControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load());
+    this.customerControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load());
 
     this.load();
   }
@@ -74,7 +75,7 @@ export class Invoices {
         status: this.statusControl.value ?? undefined,
         customerId: this.customerControl.value ?? undefined,
       })
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (invoices) => this.invoices.set(invoices),
         error: () => this.snackbar.open('Could not load invoices.', 'Close', { duration: 4000 }),
@@ -102,7 +103,7 @@ export class Invoices {
         message: `Delete ${invoice.invoiceNumber} (${invoice.total} ${invoice.currencyCode})? This cannot be undone.`,
         confirmLabel: 'Delete',
       })
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed) => {
         if (!confirmed) return;
         this.invoiceService.delete(invoice.id).subscribe({

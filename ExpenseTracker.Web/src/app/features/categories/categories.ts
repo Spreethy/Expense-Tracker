@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -31,6 +31,7 @@ export class Categories {
   private readonly dialog = inject(MatDialog);
   private readonly confirm = inject(ConfirmService);
   private readonly snackbar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly columns = ['color', 'name', 'expenses', 'actions'];
   readonly categories = signal<Category[]>([]);
@@ -44,7 +45,7 @@ export class Categories {
     this.loading.set(true);
     this.categoryService
       .getAll()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (categories) => this.categories.set(categories),
         error: () => this.onLoadError(),
@@ -64,7 +65,7 @@ export class Categories {
 
     ref
       .afterClosed()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((payload) => {
         if (!payload) return;
         const request = category
@@ -89,7 +90,7 @@ export class Categories {
         message: `Delete "${category.name}"? Existing expenses will be kept but become uncategorized.`,
         confirmLabel: 'Delete',
       })
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed) => {
         if (!confirmed) return;
         this.categoryService.delete(category.id).subscribe(() => {

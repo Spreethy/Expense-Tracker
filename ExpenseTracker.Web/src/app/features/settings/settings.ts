@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -33,6 +33,7 @@ export class Settings {
   private readonly fb = inject(FormBuilder);
   private readonly currencyService = inject(CurrencyService);
   private readonly snackbar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
   readonly rates = signal<CurrencyInfo[]>([]);
@@ -53,7 +54,7 @@ export class Settings {
     this.loading.set(true);
     this.currencyService
       .getCurrencies()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => this.apply(data),
         error: () => {
@@ -85,7 +86,7 @@ export class Settings {
 
   saveDefault(): void {
     const code = this.defaultForm.controls.defaultCurrency.value;
-    this.currencyService.updateDefault(code).pipe(takeUntilDestroyed()).subscribe({
+    this.currencyService.updateDefault(code).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.apply(data);
         this.snackbar.open(`Default currency set to ${code}`, 'Close', { duration: 3000 });
@@ -105,7 +106,7 @@ export class Settings {
     for (const key of Object.keys(this.ratesForm.controls)) {
       rates[key] = this.ratesForm.controls[key].value ?? 1;
     }
-    this.currencyService.updateRates(rates).pipe(takeUntilDestroyed()).subscribe({
+    this.currencyService.updateRates(rates).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.apply(data);
         this.snackbar.open('Exchange rates saved', 'Close', { duration: 3000 });

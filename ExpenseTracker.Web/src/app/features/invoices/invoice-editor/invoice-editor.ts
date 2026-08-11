@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AsyncPipe } from '@angular/common';
@@ -46,6 +46,7 @@ export class InvoiceEditor {
   private readonly invoiceService = inject(InvoiceService);
   private readonly customerService = inject(CustomerService);
   private readonly currencyService = inject(CurrencyService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly customers = signal<Customer[]>([]);
   readonly loading = signal(false);
@@ -70,10 +71,10 @@ export class InvoiceEditor {
   constructor() {
     this.customerService
       .getAll()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((customers) => this.customers.set(customers));
 
-    this.route.params.pipe(takeUntilDestroyed()).subscribe((params) => {
+    this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       if (params['id']) {
         this.editId.set(Number(params['id']));
         this.loadForEdit(Number(params['id']));
@@ -83,7 +84,7 @@ export class InvoiceEditor {
 
   private loadForEdit(id: number): void {
     this.loading.set(true);
-    this.invoiceService.getById(id).pipe(takeUntilDestroyed()).subscribe({
+    this.invoiceService.getById(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (invoice) => this.patchForm(invoice),
       error: () => this.router.navigate(['/invoices']),
       complete: () => this.loading.set(false),
@@ -189,7 +190,7 @@ export class InvoiceEditor {
       ? this.invoiceService.update(this.editId()!, payload)
       : this.invoiceService.create(payload);
 
-    request.pipe(takeUntilDestroyed()).subscribe({
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (invoice) => {
         this.saving.set(false);
         this.snackbar.open(`Invoice ${invoice.invoiceNumber} saved`, 'Close', { duration: 3000 });

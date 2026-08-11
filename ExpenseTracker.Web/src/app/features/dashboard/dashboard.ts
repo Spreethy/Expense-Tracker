@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -35,6 +35,7 @@ interface CardDef {
 })
 export class Dashboard {
   private readonly reportService = inject(ReportService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading = signal(false);
   readonly summary = signal<DashboardSummary | null>(null);
@@ -51,7 +52,7 @@ export class Dashboard {
     this.loading.set(true);
     this.reportService
       .getSummary()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (summary) => this.summary.set(summary),
         error: () => this.loading.set(false),
@@ -60,7 +61,7 @@ export class Dashboard {
 
     this.reportService
       .getInvoicesByStatus()
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         this.statusData.set(
           data.map((d) => ({ name: d.status, value: d.amount }))
@@ -69,7 +70,7 @@ export class Dashboard {
 
     this.reportService
       .getExpensesByMonth(6)
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => {
         this.monthData.set(
           data.map((d) => ({ name: this.monthLabel(d.month), value: d.amount }))

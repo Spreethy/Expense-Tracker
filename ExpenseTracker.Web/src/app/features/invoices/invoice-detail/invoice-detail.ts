@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -36,8 +36,9 @@ export class InvoiceDetail {
   protected readonly router = inject(Router);
   private readonly snackbar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
-  private readonly confirm = inject(ConfirmService);
+private readonly confirm = inject(ConfirmService);
   private readonly invoiceService = inject(InvoiceService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly invoice = signal<InvoiceDetailModel | null>(null);
   readonly loading = signal(false);
@@ -45,7 +46,7 @@ export class InvoiceDetail {
   readonly paymentsColumns = ['date', 'method', 'reference', 'amount', 'actions'];
 
   constructor() {
-    this.route.params.pipe(takeUntilDestroyed()).subscribe((params) => {
+    this.route.params.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.load(Number(params['id']));
     });
   }
@@ -54,7 +55,7 @@ export class InvoiceDetail {
     this.loading.set(true);
     this.invoiceService
       .getById(id)
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (invoice) => {
           this.invoice.set(invoice);
@@ -91,7 +92,7 @@ export class InvoiceDetail {
   private transition(status: 'Sent' | 'Paid' | 'Cancelled', message: string): void {
     const invoice = this.invoice();
     if (!invoice) return;
-    this.invoiceService.updateStatus(invoice.id, status).pipe(takeUntilDestroyed()).subscribe({
+    this.invoiceService.updateStatus(invoice.id, status).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (updated) => {
         this.invoice.set(updated);
         this.snackbar.open(message, 'Close', { duration: 3000 });
@@ -111,7 +112,7 @@ export class InvoiceDetail {
       width: '420px',
     });
 
-    ref.afterClosed().pipe(takeUntilDestroyed()).subscribe((payload) => {
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((payload) => {
       if (!payload) return;
       this.invoiceService.addPayment(invoice.id, payload).subscribe({
         next: (updated) => {
@@ -135,7 +136,7 @@ export class InvoiceDetail {
         message: 'Remove this payment from the invoice?',
         confirmLabel: 'Remove',
       })
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed) => {
         if (!confirmed) return;
         this.invoiceService.removePayment(invoice.id, paymentId).subscribe({
@@ -154,7 +155,7 @@ export class InvoiceDetail {
     const invoice = this.invoice();
     if (!invoice) return;
 
-    this.invoiceService.getPdf(invoice.id).pipe(takeUntilDestroyed()).subscribe({
+    this.invoiceService.getPdf(invoice.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -179,7 +180,7 @@ export class InvoiceDetail {
         message: `Delete ${invoice.invoiceNumber}? This cannot be undone.`,
         confirmLabel: 'Delete',
       })
-      .pipe(takeUntilDestroyed())
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed) => {
         if (!confirmed) return;
         this.invoiceService.delete(invoice.id).subscribe({
