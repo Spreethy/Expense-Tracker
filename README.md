@@ -118,4 +118,7 @@ see [`docs/API.md`](docs/API.md).
 - The database is SQL Server 2022 running in Docker for development parity.
 - Money is stored as `decimal(18,2)`; exchange rates as `decimal(18,8)`.
 - QuestPDF is used for PDF generation under the Community license.
-- CORS currently allows all origins for development convenience; restrict it before production.
+- CORS is restricted to the origins in `Cors:AllowedOrigins` (`appsettings.json`, default
+  `http://localhost:4200`). If the list is empty, all origins are allowed for development.
+- Before deploying, set `Jwt:Key` to a strong secret (e.g. env var `Jwt__Key`). The API refuses
+  to start in the `Production` environment while the placeholder key from `appsettings.json` is in use.

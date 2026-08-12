@@ -16,6 +16,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 var jwt = builder.Configuration.GetSection("Jwt");
+if (builder.Environment.IsProduction() &&
+    (string.IsNullOrWhiteSpace(jwt["Key"]) ||
+     jwt["Key"] == "ExpenseTracker-Super-Secret-Key-Change-Me-In-Production-2026"))
+{
+    throw new InvalidOperationException(
+        "Set a strong Jwt:Key (e.g. env var Jwt__Key) before running in production.");
+}
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -46,12 +54,24 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+    {
+        if (corsOrigins.Length == 0)
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
+        else
+        {
+            policy.WithOrigins(corsOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        }
+    });
 });
 
 var app = builder.Build();
